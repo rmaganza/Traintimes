@@ -39,7 +39,7 @@ if __name__ == '__main__':
     trainNumber = int(sys.argv[1])
 
     with open(os.path.join('data', 'stations-dump', 'stations.json')) as jsonfile:
-        station_infos = json.dump(jsonfile)
+        station_infos = json.load(jsonfile)
 
     api = viaggiatreno.API()
 
