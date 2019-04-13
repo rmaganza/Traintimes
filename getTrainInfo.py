@@ -33,8 +33,6 @@ def getStationsLatLon(stationName, stationInfoDict):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        import os
-
         print("Usage: " + os.path.basename(__file__) + " <trainNumber>")
         sys.exit()
 
