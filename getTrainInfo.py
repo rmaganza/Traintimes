@@ -85,6 +85,7 @@ def getTrainInfo(trainNumber):
         res["lastCheckedTime"] = format_timestamp(train_status["oraUltimoRilevamento"])
 
         stops = []
+        delays = []
         for f in train_status['fermate']:
             station = f["stazione"]
             stop = OrderedDict([('station', station),
@@ -101,7 +102,11 @@ def getTrainInfo(trainNumber):
                 stop["delay"] = f['ritardoArrivo']
                 stop["descr"] = 'Arrival'
 
-            # the output line is formatted according to the available data:
+            delays.append(stop["delay"])
+
+            if len(delays) > 1:
+                stop["delayDiff"] = delays[-1] - delays[-2]
+
             if f['actualFermataType'] == 3:
                 stop["status"] = "Cancelled"
             elif f['actualFermataType'] == 0:
