@@ -5,9 +5,9 @@ from __future__ import print_function
 import sys
 import os
 import json
-import datetime
-from backports.functools_lru_cache import lru_cache
 import viaggiatreno
+import datetime
+from collections import OrderedDict
 
 
 def is_valid_timestamp(ts):
@@ -21,7 +21,6 @@ def format_timestamp(ts, fmt='%H:%M:%S'):
         return 'N/A'
 
 
-@lru_cache(maxsize=1500)
 def getStationsLatLon(stationName, stationInfoDict):
     filterStations = [stat for stat in stationInfoDict if stat["name"] == stationName]
 
@@ -31,16 +30,11 @@ def getStationsLatLon(stationName, stationInfoDict):
     return lat, lon
 
 
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print("Usage: " + os.path.basename(__file__) + " <trainNumber>")
-        sys.exit()
-
-    trainNumber = int(sys.argv[1])
-
+def getTrainInfo(trainNumber):
     with open(os.path.join('data', 'stations-dump', 'stations.json')) as jsonfile:
         station_infos = json.load(jsonfile)
 
+    station_infos = tuple(station_infos)
     api = viaggiatreno.API()
 
     # "cercaNumeroTrenoTrenoAutocomplete is the viaggiatreno API call that returns the starting station
@@ -63,7 +57,11 @@ if __name__ == '__main__':
     # It is required by viaggiatreno.it APIs.
     train_status = api.call('andamentoTreno', departure_ID, trainNumber)
 
-    res = {"trainNumber": trainNumber}
+
+    res = OrderedDict([('trainNumber', trainNumber)])
+
+    departureDay = datetime.datetime.now()
+    res["departureDay"] = str(departureDay.month) + "/" + str(departureDay.day)
     # in these cases, the train has been cancelled.
     if train_status['tipoTreno'] == 'ST' or train_status['provvedimento'] == 1:
         res["status"] = "cancelled"
@@ -71,6 +69,7 @@ if __name__ == '__main__':
     # otherwise, it is checked whether the train is running or if it's not yet.
     elif train_status['oraUltimoRilevamento'] is None:
         res["status"] = "notDeparted"
+        res["isRunning"] = "no"
         res["scheduledDeparture"] = format_timestamp(train_status['orarioPartenza'])
         res["origin"] = train_status["origine"]
 
@@ -82,14 +81,14 @@ if __name__ == '__main__':
         else:
             res["status"] = "OK"
 
-        res["lastCheckedStation"] = train_status["stazioneUltimoRilevamento"]
+        res["lastCheckedAt"] = train_status["stazioneUltimoRilevamento"]
         res["lastCheckedTime"] = format_timestamp(train_status["oraUltimoRilevamento"])
 
         stops = []
         for f in train_status['fermate']:
             station = f["stazione"]
-            stop = {'station': station,
-                    "scheduledAt": format_timestamp(f['programmata'])}
+            stop = OrderedDict([('station', station),
+                                ('scheduledAt', format_timestamp(f['programmata']))])
 
             stop["lat"], stop["lon"] = getStationsLatLon(station, station_infos)
 
@@ -113,5 +112,26 @@ if __name__ == '__main__':
             # there we go
             stops.append(stop)
 
-        res["stops"] = stops
-    print(json.dumps(res))
+        actualStops = [stop for stop in stops if stop["status"] != "N/A"]
+        res["stops"] = actualStops
+
+        if len(actualStops) == len(stops):
+            arrivalDay = datetime.datetime.now()
+
+            res["arrivalDay"] = str(arrivalDay.month) + "/" + str(arrivalDay.day)
+            res["isRunning"] = "Arrived"
+
+        else:
+            res["isRunning"] = "running"
+
+    return json.dumps(res)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: " + os.path.basename(__file__) + " <trainNumber>")
+        sys.exit()
+
+    trainNumber = int(sys.argv[1])
+
+    print(getTrainInfo(trainNumber))
