@@ -10,6 +10,7 @@ try:
 except ImportError:
     from urllib2 import urlopen, URLError
 
+logger = logger.getLogger("API")
 
 class Utils:
     @staticmethod

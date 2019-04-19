@@ -11,6 +11,7 @@ from collections import OrderedDict
 from logs.logger import logger
 from api import viaggiatreno
 
+logger = logger.getLogger("TrainSearch")
 
 def is_valid_timestamp(ts):
     return (ts is not None) and (ts > 0) and (ts < 2147483648000)
@@ -58,6 +59,7 @@ def getTrainInfo(trainNumber):
     res = OrderedDict([('trainNumber', trainNumber)])
     # This fetches the status for that train number from that departure_ID we just fetched.
     # It is required by viaggiatreno.it APIs.
+    logger.info("Searching for train " + str(trainNumber))
     logger.info("CALLING API")
     train_status = api.call('andamentoTreno', departure_ID, trainNumber)
 
@@ -66,7 +68,6 @@ def getTrainInfo(trainNumber):
         res["status"] = "HTTPIssue"
 
     else:
-        logger.info("Searching for train " + str(trainNumber))
         departureDay = datetime.datetime.now()
         res["departureDay"] = str(departureDay.month) + "/" + str(departureDay.day)
         # in these cases, the train has been cancelled.
