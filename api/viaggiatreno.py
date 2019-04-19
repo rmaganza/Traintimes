@@ -1,11 +1,14 @@
 import json
 import re
-import dateutils
+from api import dateutils
+from socket import timeout
+from logs.logger import logger
+from retry import retry
 
 try:
     from urllib.request import urlopen
 except ImportError:
-    from urllib import urlopen
+    from urllib2 import urlopen, URLError
 
 
 class Utils:
@@ -95,6 +98,7 @@ class API:
         decoder = self.__decoders.get(function, self.__default_decoder)
         return decoder(data)
 
+    @retry((URLError, timeout), logger=logger)
     def call(self, function, *params, **options):
         plain = options.get('plainoutput', self.__plainoutput)
         verbose = options.get('verbose', self.__verbose)
@@ -105,8 +109,15 @@ class API:
 
         if verbose:
             print(url)
+        try:
+            req = self.__urlopen(url)
+        except URLError:
+            logger.warning("ViaggiaTreno has a problem, train could not be searched")
+            return 1
+        except timeout:
+            logger.warning("ViaggiaTreno has a problem, train could not be searched.")
+            return 2
 
-        req = self.__urlopen(url)
         data = req.read().decode('utf-8')
         if plain:
             return data

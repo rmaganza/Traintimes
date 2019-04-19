@@ -2,12 +2,14 @@
 
 from __future__ import print_function
 
-import sys
-import os
-import json
-import viaggiatreno
 import datetime
+import json
+import os
+import sys
 from collections import OrderedDict
+
+from logs.logger import logger
+from api import viaggiatreno
 
 
 def is_valid_timestamp(ts):
@@ -43,7 +45,7 @@ def getTrainInfo(trainNumber):
     departures = api.call('cercaNumeroTrenoTrenoAutocomplete', trainNumber)
 
     if len(departures) == 0:
-        print("Train {0} does not exists.".format(trainNumber))
+        print("Train {0} does not exist.".format(trainNumber))
         sys.exit()
 
     # TODO: handle not unique train numbers, when len(departures) > 1
@@ -53,81 +55,94 @@ def getTrainInfo(trainNumber):
     # Therefore, departures[0][1] is the station ID element #1 of the first result [0].
     departure_ID = departures[0][1]
 
+    res = OrderedDict([('trainNumber', trainNumber)])
     # This fetches the status for that train number from that departure_ID we just fetched.
     # It is required by viaggiatreno.it APIs.
+    logger.info("CALLING API")
     train_status = api.call('andamentoTreno', departure_ID, trainNumber)
 
+    if train_status == 1 or train_status == 2:
+        logger.error("Viaggiatreno has issues. Skipping " + str(trainNumber) + " as it could not be searched")
+        res["status"] = "HTTPIssue"
 
-    res = OrderedDict([('trainNumber', trainNumber)])
-
-    departureDay = datetime.datetime.now()
-    res["departureDay"] = str(departureDay.month) + "/" + str(departureDay.day)
-    # in these cases, the train has been cancelled.
-    if train_status['tipoTreno'] == 'ST' or train_status['provvedimento'] == 1:
-        res["status"] = "cancelled"
-
-    # otherwise, it is checked whether the train is running or if it's not yet.
-    elif train_status['oraUltimoRilevamento'] is None:
-        res["status"] = "notDeparted"
-        res["isRunning"] = "no"
-        res["scheduledDeparture"] = format_timestamp(train_status['orarioPartenza'])
-        res["origin"] = train_status["origine"]
-
-    # finally, if the train is up and running
     else:
-        if train_status['tipoTreno'] in ('PP', 'SI', 'SF'):
-            res["status"] = "partiallyCancelled"
+        logger.info("Searching for train " + str(trainNumber))
+        departureDay = datetime.datetime.now()
+        res["departureDay"] = str(departureDay.month) + "/" + str(departureDay.day)
+        # in these cases, the train has been cancelled.
+        if train_status['tipoTreno'] == 'ST' or train_status['provvedimento'] == 1:
+            res["status"] = "cancelled"
 
+        # otherwise, it is checked whether the train is running or if it's not yet.
+        elif train_status['oraUltimoRilevamento'] is None:
+            res["status"] = "notDeparted"
+            res["isRunning"] = "no"
+            res["lastCheckedAt"] = "N/A"
+            res["scheduledDeparture"] = format_timestamp(train_status['orarioPartenza'])
+            res["origin"] = train_status["origine"]
+
+        # finally, if the train is up and running
         else:
-            res["status"] = "OK"
+            if train_status['tipoTreno'] in ('PP', 'SI', 'SF'):
+                res["status"] = "partiallyCancelled"
 
-        res["lastCheckedAt"] = train_status["stazioneUltimoRilevamento"]
-        res["lastCheckedTime"] = format_timestamp(train_status["oraUltimoRilevamento"])
-
-        stops = []
-        delays = []
-        for f in train_status['fermate']:
-            station = f["stazione"]
-            stop = OrderedDict([('station', station),
-                                ('scheduledAt', format_timestamp(f['programmata']))])
-
-            stop["lat"], stop["lon"] = getStationsLatLon(station, station_infos)
-
-            if f['tipoFermata'] == 'P':
-                stop["actual"] = format_timestamp(f['partenzaReale'])
-                stop["delay"] = f['ritardoPartenza']
-                stop["descr"] = 'Departure'
             else:
-                stop["actual"] = format_timestamp(f['arrivoReale'])
-                stop["delay"] = f['ritardoArrivo']
-                stop["descr"] = 'Arrival'
+                res["status"] = "OK"
 
-            delays.append(stop["delay"])
+            res["lastCheckedAt"] = train_status["stazioneUltimoRilevamento"]
+            res["lastCheckedTime"] = format_timestamp(train_status["oraUltimoRilevamento"])
 
-            if len(delays) > 1:
-                stop["delayDiff"] = delays[-1] - delays[-2]
+            stops = []
+            delays = []
+            for f in train_status['fermate']:
+                station = f["stazione"]
+                stop = OrderedDict([('station', station),
+                                    ('scheduledAt', format_timestamp(f['programmata']))])
 
-            if f['actualFermataType'] == 3:
-                stop["status"] = "Cancelled"
-            elif f['actualFermataType'] == 0:
-                stop["status"] = "N/A"
+                stop["lat"], stop["lon"] = getStationsLatLon(station, station_infos)
+
+                if f['tipoFermata'] == 'P':
+                    stop["actual"] = format_timestamp(f['partenzaReale'])
+                    stop["delay"] = f['ritardoPartenza']
+                    stop["descr"] = 'Departure'
+                else:
+                    stop["actual"] = format_timestamp(f['arrivoReale'])
+                    stop["delay"] = f['ritardoArrivo']
+                    stop["descr"] = 'Arrival'
+
+                delays.append(stop["delay"])
+
+                if len(delays) > 1:
+                    stop["delayDiff"] = delays[-1] - delays[-2]
+
+                if f['actualFermataType'] == 3:
+                    stop["status"] = "Cancelled"
+
+                elif f['actualFermataType'] == 0:
+                    stop["status"] = "N/A"
+
+                else:
+                    stop["status"] = "OK"
+
+                # there we go
+                stops.append(stop)
+
+            actualStops = [stop for stop in stops if stop["status"] != "N/A"]
+            res["stops"] = actualStops
+
+            if len(actualStops) == len(stops):
+                arrivalDay = datetime.datetime.now()
+                res["arrivalDay"] = str(arrivalDay.month) + "/" + str(arrivalDay.day)
+                res["isRunning"] = "Arrived"
+                scheduledDeparture = datetime.datetime.strptime(stops[0]["scheduledAt"], "%H:%M:%S")
+                scheduledArrival = datetime.datetime.strptime(stops[-1]["scheduledAt"], "%H:%M:%S")
+                timediff = scheduledArrival - scheduledDeparture
+                res["scheduledTripDuration"] = timediff.seconds / 60
+                res["finalDelay"] = stops[-1]["delay"]
+
             else:
-                stop["status"] = "OK"
-
-            # there we go
-            stops.append(stop)
-
-        actualStops = [stop for stop in stops if stop["status"] != "N/A"]
-        res["stops"] = actualStops
-
-        if len(actualStops) == len(stops):
-            arrivalDay = datetime.datetime.now()
-
-            res["arrivalDay"] = str(arrivalDay.month) + "/" + str(arrivalDay.day)
-            res["isRunning"] = "Arrived"
-
-        else:
-            res["isRunning"] = "running"
+                res["isRunning"] = "running"
+            logger.info("Saving info for train " + str(trainNumber))
 
     return json.dumps(res)
 

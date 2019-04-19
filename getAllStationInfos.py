@@ -5,7 +5,7 @@ import json
 import string
 import csv
 from operator import itemgetter
-import viaggiatreno
+from api import viaggiatreno
 
 region_codes = {
     1: "Lombardia",
