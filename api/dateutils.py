@@ -23,11 +23,11 @@ def check_timestamp(ts):
 
 
 def convert_timestamp(ts):
-    if check_timestamp(ts):
-        return datetime.datetime.fromtimestamp(ts / 1000)
-    else:
-        return 'N/A'
+    return datetime.datetime.fromtimestamp(ts / 1000)
 
 
 def format_timestamp(ts, fmt="%H:%M:%S"):
-    return convert_timestamp(ts).strftime(fmt)
+    if check_timestamp(ts):
+        return convert_timestamp(ts).strftime(fmt)
+    else:
+        return 'N/A'

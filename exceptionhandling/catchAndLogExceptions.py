@@ -3,7 +3,7 @@ from urllib2 import URLError
 from functools import wraps
 
 
-def log_and_send_mail(logger, e):
+def log_critical_and_send_mail(logger, e):
     logger.critical("*CRITICAL ERROR* Program stopped working for exception " + repr(e), exc_info=True)
 
 
@@ -22,7 +22,7 @@ def sendMailIfHalts(logger):
                 return func(*args, **kwargs)
             except StandardError as e:
                 # log the exception
-                log_and_send_mail(logger, e)
+                log_critical_and_send_mail(logger, e)
                 # re-raise the exception
                 raise
 

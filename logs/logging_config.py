@@ -32,11 +32,17 @@ LOGGING_CONFIG = {
             "formatter": "simple",
             "filename": os.path.join(ROOT_DIR, 'logs', 'trainlog.log'),
             "encoding": "utf8"
+        },
+
+        "stdout_handler": {
+            "class": "logging.StreamHandler",
+            "level": "DEBUG",
+            "formatter": "simple"
         }
     },
 
     "root": {
         "level": "INFO",
-        "handlers": ["file_handler", "mail_handler"]
+        "handlers": ["file_handler", "mail_handler", "stdout_handler"]
     }
 }
