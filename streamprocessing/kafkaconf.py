@@ -1,6 +1,17 @@
-from kafka import KafkaProducer
+import json
+
+from kafka import KafkaProducer, KafkaConsumer
 
 KAFKA_PORT = '6667'
-Producer = KafkaProducer(bootstap_servers='sandbox-hdp.hortonworks.com:' + KAFKA_PORT,)
+BASE_SERVER = 'sandbox-hdp.hortonworks.com:'
+
+Producer = KafkaProducer(bootstrap_servers=BASE_SERVER + KAFKA_PORT)
+Consumer = KafkaConsumer(bootstrap_servers=BASE_SERVER + KAFKA_PORT,
+                         auto_offset_reset='earliest',
+                         consumer_timeout_ms=5 * 60 * 1000,
+                         enable_auto_commit=True,
+                         auto_commit_interval_ms=45000,
+                         value_deserializer=lambda x: json.loads(x.decode('utf-8'))
+                         )
 
 TOPIC_NAME = 'trains'
