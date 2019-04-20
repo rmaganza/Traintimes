@@ -12,8 +12,6 @@ from logs.logger import logger, logTrainSearch
 from api import viaggiatreno
 from api.dateutils import format_timestamp
 
-logger = logger.getLogger("TrainSearch")
-
 
 def getStationsLatLon(stationName, stationInfoDict):
     filterStations = [stat for stat in stationInfoDict if stat["name"] == stationName]
