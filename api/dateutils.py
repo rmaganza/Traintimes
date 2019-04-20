@@ -10,7 +10,7 @@ def getHolidays(year):
 
 
 def is_holiday(date):
-    holiday_list = holidays.Italy(years=date.year)
+    holiday_list = getHolidays(date.year)
     return date in holiday_list
 
 
