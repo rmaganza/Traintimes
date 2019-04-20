@@ -124,6 +124,7 @@ def callApiAndGetResults(trainNumber, departures, res, api):
 
     return res
 
+
 def getTrainInfo(trainNumber):
 
     res = OrderedDict([('trainNumber', trainNumber)])
