@@ -46,6 +46,6 @@ class GMailHandler(logging.Handler):
             yag.send(subject=self.getSubject(record), contents=msg)
         except (KeyboardInterrupt, SystemExit):
             raise
-        except:
+        except StandardError:
             self.handleError(record)
 
