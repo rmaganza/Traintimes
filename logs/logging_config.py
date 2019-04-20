@@ -10,6 +10,10 @@ LOGGING_CONFIG = {
     "formatters": {
         "simple": {
             "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        },
+
+        "mail": {
+            "format": "%(asctime)s - %(name)s\n%(levelname)s\n%(message)s"
         }
     },
 
@@ -19,7 +23,8 @@ LOGGING_CONFIG = {
             "level": "CRITICAL",
             "oauth_path": OAUTH_PATH,
             "fromaddr": MAIL_ADDRESS,
-            "subject": "*CRITICAL* TrainSearch Error"
+            "subject": "*CRITICAL* TrainSearch Error",
+            "formatter": "mail"
         },
         "file_handler": {
             "class": "logging.FileHandler",
