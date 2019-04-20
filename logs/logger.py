@@ -1,12 +1,12 @@
 import logging
 import logging.config
+import os
 
-import json
+from logging_config import LOGGING_CONFIG
 
-LOG_CONFIG_FILE = "logs/logging_config.json"
+logfolder = os.path.dirname(os.path.abspath(__file__))
 
-with open(LOG_CONFIG_FILE, 'r') as conf:
-    config_dict = json.load(conf)
-logging.config.dictConfig(config_dict)
+logging.config.dictConfig(LOGGING_CONFIG)
 
 logger = logging
+
