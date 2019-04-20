@@ -3,6 +3,7 @@ import os
 
 from logging_config import LOGGING_CONFIG
 
+
 def logTrainSearch(log):
     def decorator(func):
 

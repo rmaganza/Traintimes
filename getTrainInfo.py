@@ -144,7 +144,7 @@ def getTrainInfo(trainNumber):
 
     res = callApiAndGetResults(trainNumber, departures, res, api)
 
-    return json.dumps(res)
+    return json.dumps(res).encode('utf-8')
 
 
 if __name__ == "__main__":

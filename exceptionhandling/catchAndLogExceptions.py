@@ -1,18 +1,33 @@
+import signal
+from functools import wraps
 from socket import timeout
 from urllib2 import URLError
-from functools import wraps
+
+from logs.logger import logger
 
 
-def log_critical_and_send_mail(logger, e):
-    logger.critical("*CRITICAL ERROR* Program stopped working for exception " + repr(e), exc_info=True)
+class ShutdownHandler:
+    def __init__(self, log):
+        signal.signal(signal.SIGTERM, self.log_shutdown)
+        self.logger = log
+
+    def log_shutdown(self):
+        self.logger.critical("*CRITICAL* DETECTED SHUTDOWN. Aborting...")
 
 
-def sendMailIfHalts(logger):
+shutdown_handler = ShutdownHandler(logger)
+
+
+def log_critical_and_send_mail(log, e):
+    log.critical("*CRITICAL ERROR* Program stopped working for exception " + repr(e), exc_info=True)
+
+
+def sendMailIfHalts(log):
     """
     A decorator that wraps the passed in function and logs
     exceptions should one occur
 
-    @param logger: The logging object
+    @param log: The logging object
     """
 
     def decorator(func):
@@ -22,7 +37,7 @@ def sendMailIfHalts(logger):
                 return func(*args, **kwargs)
             except StandardError as e:
                 # log the exception
-                log_critical_and_send_mail(logger, e)
+                log_critical_and_send_mail(log, e)
                 # re-raise the exception
                 raise
 
