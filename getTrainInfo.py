@@ -10,18 +10,9 @@ from collections import OrderedDict
 
 from logs.logger import logger
 from api import viaggiatreno
+from api.dateutils import format_timestamp
 
 logger = logger.getLogger("TrainSearch")
-
-def is_valid_timestamp(ts):
-    return (ts is not None) and (ts > 0) and (ts < 2147483648000)
-
-
-def format_timestamp(ts, fmt='%H:%M:%S'):
-    if is_valid_timestamp(ts):
-        return datetime.datetime.fromtimestamp(ts / 1000).strftime(fmt)
-    else:
-        return 'N/A'
 
 
 def getStationsLatLon(stationName, stationInfoDict):
