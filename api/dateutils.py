@@ -1,12 +1,16 @@
 import datetime
 import holidays
 
-
-def getHolidays(date):
-    return holidays.Italy(years=date.year)
+from backports.functools_lru_cache import lru_cache
 
 
-def is_holiday(date, holiday_list):
+@lru_cache(maxsize=100)
+def getHolidays(year):
+    return holidays.Italy(years=year)
+
+
+def is_holiday(date):
+    holiday_list = holidays.Italy(years=date.year)
     return date in holiday_list
 
 
