@@ -13,7 +13,7 @@ LOGGING_CONFIG = {
         },
 
         "mail": {
-            "format": "%(asctime)s - %(name)s\n%(levelname)s\n%(message)s"
+            "format": "<h1>!!! PROGRAM HALTED !!!</h1>\n%(name)s - %(levelname)s\n<b>Time</b>: %(asctime)s\n<b>Message</b>: %(message)s"
         }
     },
 
