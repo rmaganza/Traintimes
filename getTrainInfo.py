@@ -135,8 +135,8 @@ def getTrainInfo(trainNumber):
     departures = api.call('cercaNumeroTrenoTrenoAutocomplete', trainNumber)
 
     if len(departures) == 0:
-        logger.error("Train {0} does not exist.".format(trainNumber))
-        res["status"] = 404
+        logger.info("Train {0} not found on date.".format(trainNumber))
+        res["status"] = "NotRunningOnDate"
         return json.dumps(res)
 
     elif len(departures) > 1:
