@@ -2,9 +2,12 @@ import datetime
 import holidays
 
 
-def is_holiday(date):
-    italian_holidays = holidays.Italy(years=date.year)
-    return date in italian_holidays
+def getHolidays(date):
+    return holidays.Italy(years=date.year)
+
+
+def is_holiday(date, holiday_list):
+    return date in holiday_list
 
 
 def is_weekend(date):
