@@ -20,7 +20,7 @@ LOGGING_CONFIG = {
     "handlers": {
         "mail_handler": {
             "class": "logs.GMailHandler.GMailHandler",
-            "level": "CRITICAL",
+            "level": "ERROR",
             "oauth_path": OAUTH_PATH,
             "fromaddr": MAIL_ADDRESS,
             "subject": "*CRITICAL* TrainSearch Error",

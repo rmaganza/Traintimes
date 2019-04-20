@@ -8,7 +8,7 @@ import os
 import sys
 from collections import OrderedDict
 
-from logs.logger import logger
+from logs.logger import logger, logTrainSearch
 from api import viaggiatreno
 from api.dateutils import format_timestamp
 
@@ -24,41 +24,24 @@ def getStationsLatLon(stationName, stationInfoDict):
     return lat, lon
 
 
-def getTrainInfo(trainNumber):
-    with open(os.path.join('data', 'stations-dump', 'stations.json')) as jsonfile:
-        station_infos = json.load(jsonfile)
-
-    station_infos = tuple(station_infos)
-    api = viaggiatreno.API()
-
-    # "cercaNumeroTrenoTrenoAutocomplete is the viaggiatreno API call that returns the starting station
-    # for the train number specified as its argument.
-    # Unfortunately that could return more than one station.
-    departures = api.call('cercaNumeroTrenoTrenoAutocomplete', trainNumber)
-
-    if len(departures) == 0:
-        print("Train {0} does not exist.".format(trainNumber))
-        sys.exit()
-
-    # TODO: handle not unique train numbers, when len(departures) > 1
+@logTrainSearch(logger)
+def callApiAndGetResults(trainNumber, departures, res, api):
 
     # each result has two elements, the name of the station [0] and its ID [1].
     # we only care about the first result here
     # Therefore, departures[0][1] is the station ID element #1 of the first result [0].
+
     departure_ID = departures[0][1]
 
-    res = OrderedDict([('trainNumber', trainNumber)])
     # This fetches the status for that train number from that departure_ID we just fetched.
     # It is required by viaggiatreno.it APIs.
-    logger.info("Searching for train " + str(trainNumber))
-    logger.info("CALLING API")
     train_status = api.call('andamentoTreno', departure_ID, trainNumber)
 
-    if train_status == 1 or train_status == 2:
-        logger.error("Viaggiatreno has issues. Skipping " + str(trainNumber) + " as it could not be searched")
+    if train_status == 1:
         res["status"] = "HTTPIssue"
 
     else:
+
         departureDay = datetime.datetime.now()
         res["departureDay"] = str(departureDay.month) + "/" + str(departureDay.day)
         # in these cases, the train has been cancelled.
@@ -84,6 +67,10 @@ def getTrainInfo(trainNumber):
             res["lastCheckedAt"] = train_status["stazioneUltimoRilevamento"]
             res["lastCheckedTime"] = format_timestamp(train_status["oraUltimoRilevamento"])
 
+            with open(os.path.join('data', 'stations-dump', 'stations.json')) as jsonfile:
+                station_infos = json.load(jsonfile)
+
+            station_infos = tuple(station_infos)
             stops = []
             delays = []
             for f in train_status['fermate']:
@@ -134,7 +121,29 @@ def getTrainInfo(trainNumber):
 
             else:
                 res["isRunning"] = "running"
-            logger.info("Saving info for train " + str(trainNumber))
+
+    return res
+
+def getTrainInfo(trainNumber):
+
+    res = OrderedDict([('trainNumber', trainNumber)])
+
+    api = viaggiatreno.API()
+
+    # "cercaNumeroTrenoTrenoAutocomplete is the viaggiatreno API call that returns the starting station
+    # for the train number specified as its argument.
+    # Unfortunately that could return more than one station.
+    departures = api.call('cercaNumeroTrenoTrenoAutocomplete', trainNumber)
+
+    if len(departures) == 0:
+        logger.error("Train {0} does not exist.".format(trainNumber))
+        res["status"] = 404
+        return json.dumps(res)
+
+    elif len(departures) > 1:
+        departures = departures[0]
+
+    res = callApiAndGetResults(trainNumber, departures, res, api)
 
     return json.dumps(res)
 

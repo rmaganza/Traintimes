@@ -1,10 +1,15 @@
 import csv
 import os
 
+from definitions import ROOT_DIR
 from getTrainInfo import getTrainInfo
+from exceptionhandling.catchAndLogExceptions import sendMailIfHalts
+from logs.logger import logger
 
-if __name__ == "__main__":
-    with open(os.path.join('data', 'numeritreni.csv')) as trenifile:
+
+@sendMailIfHalts(logger)
+def getAllTrainInfos(filename):
+    with open(os.path.join(ROOT_DIR, 'data', filename)) as trenifile:
         numtreni = csv.reader(trenifile, delimiter=';')
         for row in numtreni:
             numTreno = int(row[0])
@@ -13,3 +18,6 @@ if __name__ == "__main__":
                                 8306, 8317]:
                 print(getTrainInfo(numTreno))
 
+
+if __name__ == "__main__":
+    getAllTrainInfos('numeritreni.csv')

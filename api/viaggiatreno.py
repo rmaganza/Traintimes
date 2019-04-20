@@ -3,6 +3,7 @@ import re
 from api import dateutils
 from socket import timeout
 from logs.logger import logger
+from exceptionhandling.catchAndLogExceptions import catchHTTPTimeout
 from retry import retry
 
 try:
@@ -99,6 +100,7 @@ class API:
         decoder = self.__decoders.get(function, self.__default_decoder)
         return decoder(data)
 
+    @catchHTTPTimeout
     @retry((URLError, timeout), logger=logger)
     def call(self, function, *params, **options):
         plain = options.get('plainoutput', self.__plainoutput)
@@ -109,15 +111,9 @@ class API:
         url = base + function + '/' + path
 
         if verbose:
-            print(url)
-        try:
-            req = self.__urlopen(url)
-        except URLError:
-            logger.warning("ViaggiaTreno has a problem, train could not be searched")
-            return 1
-        except timeout:
-            logger.warning("ViaggiaTreno has a problem, train could not be searched.")
-            return 2
+            logger.info("Calling URL " + url)
+
+        req = self.__urlopen(url)
 
         data = req.read().decode('utf-8')
         if plain:
