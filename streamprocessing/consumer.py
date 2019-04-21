@@ -1,7 +1,7 @@
 from dbconf import collection
 from kafkaconf import Consumer
 
-from logs.logger import logConsumer, logger
+from logs.loggers import logConsumer, logger
 
 
 @logConsumer(logger)

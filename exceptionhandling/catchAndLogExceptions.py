@@ -3,7 +3,7 @@ from functools import wraps
 from socket import timeout
 from urllib2 import URLError
 
-from logs.logger import logger
+from logs.loggers import logger
 
 
 class ShutdownHandler:

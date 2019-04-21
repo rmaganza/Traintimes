@@ -8,7 +8,7 @@ import os
 import sys
 from collections import OrderedDict
 
-from logs.logger import logger, logTrainSearch
+from logs.loggers import logger, logTrainSearch
 from api import viaggiatreno
 from api.dateutils import format_timestamp
 

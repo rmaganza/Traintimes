@@ -2,7 +2,7 @@ import json
 import re
 from api import dateutils
 from socket import timeout
-from logs.logger import logger
+from logs.loggers import logger
 from exceptionhandling.catchAndLogExceptions import catchHTTPTimeout
 from retry import retry
 

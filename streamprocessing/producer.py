@@ -7,7 +7,7 @@ from definitions import ROOT_DIR
 from exceptionhandling.catchAndLogExceptions import sendMailIfHalts, shutdown_handler
 from getTrainInfo import getTrainInfo
 from kafkaconf import Producer, TOPIC_NAME
-from logs.logger import logger
+from logs.loggers import logger
 
 
 @sendMailIfHalts(logger)
