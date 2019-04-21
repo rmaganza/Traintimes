@@ -9,8 +9,7 @@ def consumer():
     for item in Consumer:
         message = item.value
         collection.update_one({'departureDay': message.get('departureDay'),
-                               'trainNumber': message.get('trainNumber'),
-                               'lastCheckedTime': message.get('lastCheckedTime')},
+                               'trainNumber': message.get('trainNumber')},
                               message,
                               upsert=True)
 
