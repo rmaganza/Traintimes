@@ -11,7 +11,7 @@ from logs.logger import logger
 
 
 @sendMailIfHalts(logger)
-def getAllTrainInfos(filename):
+def producer(filename):
     with open(os.path.join(ROOT_DIR, 'data', filename)) as trenifile:
         numtreni = csv.reader(trenifile, delimiter=';')
     today = datetime.date.today()
@@ -31,4 +31,4 @@ def getAllTrainInfos(filename):
 
 
 if __name__ == "__main__":
-    getAllTrainInfos('numeritreni.csv')
+    producer('numeritreni.csv')
