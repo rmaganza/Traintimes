@@ -6,7 +6,11 @@ KAFKA_PORT = '6667'
 BASE_SERVER = 'sandbox-hdp.hortonworks.com:'
 GROUP_NAME = 'traingroup'
 Producer = KafkaProducer(bootstrap_servers=BASE_SERVER + KAFKA_PORT)
-Consumer = KafkaConsumer(bootstrap_servers=BASE_SERVER + KAFKA_PORT,
+
+TOPIC_NAME = 'trains'
+
+Consumer = KafkaConsumer(TOPIC_NAME,
+                         bootstrap_servers=BASE_SERVER + KAFKA_PORT,
                          auto_offset_reset='earliest',
                          consumer_timeout_ms=5 * 60 * 1000,
                          enable_auto_commit=True,
@@ -14,5 +18,3 @@ Consumer = KafkaConsumer(bootstrap_servers=BASE_SERVER + KAFKA_PORT,
                          value_deserializer=lambda x: json.loads(x.decode('utf-8')),
                          group_id=GROUP_NAME
                          )
-
-TOPIC_NAME = 'trains'

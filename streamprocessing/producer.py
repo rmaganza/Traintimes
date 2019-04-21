@@ -1,6 +1,7 @@
 import csv
 import datetime
 import os
+import time
 
 from definitions import ROOT_DIR
 from exceptionhandling.catchAndLogExceptions import sendMailIfHalts, shutdown_handler
@@ -26,6 +27,7 @@ def getAllTrainInfos(filename):
                 Producer.send(TOPIC_NAME, res)
                 if res.get("status", "N/A") == "NotRunningOnDate":
                     toSkip[today].append(numTreno)
+        time.sleep(1)
 
 
 if __name__ == "__main__":

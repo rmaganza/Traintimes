@@ -19,7 +19,21 @@ def logTrainSearch(log):
                     "Train " + str(trainNumber) +
                     " could not be searched. Viaggiatreno is experiencing troubles"
                 )
-            log.info("Saving info for train " + str(trainNumber))
+            log.info("Sending info for train " + str(trainNumber) + " to consumer")
+            return res
+
+        return wrapper
+
+    return decorator
+
+
+def logConsumer(log):
+    def decorator(func):
+
+        def wrapper(*args, **kwargs):
+            log.info("Saving to DB...")
+            res = func(*args, **kwargs)
+            log.info("Saved to DB.")
             return res
 
         return wrapper
