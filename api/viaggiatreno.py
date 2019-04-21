@@ -79,7 +79,7 @@ def _decode_autocompletaStazione(s):
     return _decode_lines(s, lambda line: tuple(line.strip().split('|')))
 
 
-class API:
+class API(object):
     def __init__(self, **options):
         self.__verbose = options.get('verbose', False)
         self.__urlopen = options.get('urlopen', urlopen)

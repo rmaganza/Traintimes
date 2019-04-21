@@ -16,7 +16,7 @@ def producer(filename):
         numtreni = csv.reader(trenifile, delimiter=';')
     today = datetime.date.today()
     toSkip = {today: []}
-    while True:
+    while not shutdown_handler.shutdown:
         today = datetime.date.today()
         if today not in toSkip:
             toSkip = {today: []}

@@ -6,12 +6,15 @@ from urllib2 import URLError
 from logs.loggers import logger
 
 
-class ShutdownHandler:
+class ShutdownHandler(object):
+    shutdown = False
+
     def __init__(self, log):
-        signal.signal(signal.SIGTERM, self.log_shutdown)
+        signal.signal(signal.SIGTERM, self.shutdown_detected)
         self.logger = log
 
-    def log_shutdown(self):
+    def shutdown_detected(self, signum, frame):
+        self.shutdown = True
         self.logger.critical("*CRITICAL* DETECTED SHUTDOWN. Aborting...")
 
 
