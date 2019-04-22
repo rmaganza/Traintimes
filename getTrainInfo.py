@@ -9,8 +9,9 @@ import sys
 from collections import OrderedDict
 
 from logs.loggers import logger, logTrainSearch
-from api import viaggiatreno
+from api.viaggiatreno import viaggiatreno
 from api.dateutils import format_timestamp
+from api.meteo.getweather import getweather
 
 
 def getStationsLatLon(stationName, stationInfoDict):
@@ -39,9 +40,7 @@ def callApiAndGetResults(trainNumber, departures, res, api):
         res["status"] = "HTTPIssue"
 
     else:
-
-        departureDay = datetime.datetime.now()
-        res["departureDay"] = str(departureDay.month) + "/" + str(departureDay.day)
+        res["departureDay"] = datetime.date.today()
         # in these cases, the train has been cancelled.
         if train_status['tipoTreno'] == 'ST' or train_status['provvedimento'] == 1:
             res["status"] = "cancelled"
@@ -76,7 +75,8 @@ def callApiAndGetResults(trainNumber, departures, res, api):
                 stop = OrderedDict([('station', station),
                                     ('scheduledAt', format_timestamp(f['programmata']))])
 
-                stop["lat"], stop["lon"] = getStationsLatLon(station, station_infos)
+                lat, lon = getStationsLatLon(station, station_infos)
+                stop["lat"], stop["lon"] = lat, lon
 
                 if f['tipoFermata'] == 'P':
                     stop["actual"] = format_timestamp(f['partenzaReale'])
@@ -86,6 +86,7 @@ def callApiAndGetResults(trainNumber, departures, res, api):
                     stop["actual"] = format_timestamp(f['arrivoReale'])
                     stop["delay"] = f['ritardoArrivo']
                     stop["descr"] = 'Arrival'
+                    stop["meteo"] = getweather(lat, lon, trainNumber, res["departureDay"])
 
                 delays.append(stop["delay"])
 
@@ -108,8 +109,7 @@ def callApiAndGetResults(trainNumber, departures, res, api):
             res["stops"] = actualStops
 
             if len(actualStops) == len(stops):
-                arrivalDay = datetime.datetime.now()
-                res["arrivalDay"] = str(arrivalDay.month) + "/" + str(arrivalDay.day)
+                res["arrivalDay"] = datetime.date.today()
                 res["isRunning"] = "Arrived"
                 scheduledDeparture = datetime.datetime.strptime(stops[0]["scheduledAt"], "%H:%M:%S")
                 scheduledArrival = datetime.datetime.strptime(stops[-1]["scheduledAt"], "%H:%M:%S")

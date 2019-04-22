@@ -1,17 +1,16 @@
-import json
 import re
 from api import dateutils
 from socket import timeout
+
+from api.decodingutils import decode_json, decode_lines
 from logs.loggers import logger
 from exceptionhandling.catchAndLogExceptions import catchHTTPTimeout
-from retry import retry
+from api.retry import retry
 
 try:
     from urllib.request import urlopen
 except ImportError:
     from urllib2 import urlopen, URLError
-
-logger = logger.getLogger("API")
 
 
 def train_runs_on_date(train_info, date):
@@ -47,36 +46,17 @@ def train_runs_on_date(train_info, date):
     return False
 
 
-# Decoders for API Output - TODO: Proper error handling
-def _decode_json(s):
-    if s == '':
-        return None
-    return json.loads(s)
-
-
-def _decode_lines(s, linefunc):
-    if s == '':
-        return []
-
-    lines = s.strip().split('\n')
-    result = []
-    for line in lines:
-        result.append(linefunc(line))
-
-    return result
-
-
 def _decode_cercaNumeroTrenoTrenoAutocomplete(s):
     def linefunc(line):
         r = re.search('^(\d+)\s-\s(.+)\|(\d+)-(.+)$', line)
         if r is not None:
             return r.group(2, 4)
 
-    return _decode_lines(s, linefunc)
+    return decode_lines(s, linefunc)
 
 
 def _decode_autocompletaStazione(s):
-    return _decode_lines(s, lambda line: tuple(line.strip().split('|')))
+    return decode_lines(s, lambda line: tuple(line.strip().split('|')))
 
 
 class API(object):
@@ -85,11 +65,11 @@ class API(object):
         self.__urlopen = options.get('urlopen', urlopen)
         self.__plainoutput = options.get('plainoutput', False)
         self.__decoders = {
-            'andamentoTreno': _decode_json,
-            'cercaStazione': _decode_json,
-            'tratteCanvas': _decode_json,
-            'dettaglioStazione': _decode_json,
-            'regione': _decode_json,
+            'andamentoTreno': decode_json,
+            'cercaStazione': decode_json,
+            'tratteCanvas': decode_json,
+            'dettaglioStazione': decode_json,
+            'regione': decode_json,
             'cercaNumeroTrenoTrenoAutocomplete': _decode_cercaNumeroTrenoTrenoAutocomplete,
             'autocompletaStazione': _decode_autocompletaStazione
         }
