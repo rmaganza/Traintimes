@@ -1,49 +1,11 @@
 import re
-from api import dateutils
 from socket import timeout
+from urllib2 import urlopen, URLError
 
 from api.decodingutils import decode_json, decode_lines
-from logs.loggers import logger
-from exceptionhandling.catchAndLogExceptions import catchHTTPTimeout
 from api.retry import retry
-
-try:
-    from urllib.request import urlopen
-except ImportError:
-    from urllib2 import urlopen, URLError
-
-
-def train_runs_on_date(train_info, date):
-    # trainInfo['runs_on'] flag:
-    # G    Runs every day
-    # FER5 Runs only Monday to Friday (holidays excluded)
-    # FER6 Runs only Monday to Saturday (holidays excluded)
-    # FEST Runs only on Sunday and holidays
-    runs_on = train_info.get('runs_on', 'G')
-    suspended = train_info.get('suspended', [])
-
-    for from_, to in suspended:
-        ymd = date.strftime('%Y-%m-%d')
-        if from_ <= ymd <= to:
-            return False
-
-    if runs_on == 'G':
-        return True
-
-    wd = date.weekday()
-
-    if runs_on == 'FEST':
-        return dateutils.is_holiday(date) or wd == 6
-
-    if dateutils.is_holiday(date):
-        return False
-
-    if runs_on == 'FER6' and wd < 6:
-        return True
-    if runs_on == 'FER5' and wd < 5:
-        return True
-
-    return False
+from exceptionhandling.catchAndLogExceptions import catchHTTPTimeout
+from logs.loggers import logger
 
 
 def _decode_cercaNumeroTrenoTrenoAutocomplete(s):
