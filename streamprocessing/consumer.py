@@ -1,5 +1,5 @@
-from dbconf import collection
-from kafkaconf import Consumer
+from streamprocessing.conf.dbconf import collection
+from streamprocessing.conf.kafkaconf import Consumer
 
 from logs.loggers import logConsumer, logger
 
