@@ -40,7 +40,7 @@ def callApiAndGetResults(trainNumber, departures, res, api):
         res["status"] = "HTTPIssue"
 
     else:
-        res["departureDay"] = datetime.date.today()
+        res["departureDay"] = datetime.date.today().strftime("%Y-%m-%d")
         # in these cases, the train has been cancelled.
         if train_status['tipoTreno'] == 'ST' or train_status['provvedimento'] == 1:
             res["status"] = "cancelled"
@@ -109,7 +109,7 @@ def callApiAndGetResults(trainNumber, departures, res, api):
             res["stops"] = actualStops
 
             if len(actualStops) == len(stops):
-                res["arrivalDay"] = datetime.date.today()
+                res["arrivalDay"] = datetime.date.today().strftime("%Y-%m-%d")
                 res["isRunning"] = "Arrived"
                 scheduledDeparture = datetime.datetime.strptime(stops[0]["scheduledAt"], "%H:%M:%S")
                 scheduledArrival = datetime.datetime.strptime(stops[-1]["scheduledAt"], "%H:%M:%S")

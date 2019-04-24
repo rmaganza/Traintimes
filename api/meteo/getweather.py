@@ -10,17 +10,17 @@ def getweather(lat, lon, numtrain, date):
     if numtrain and date:
         res = callweatherAPI(lat, lon)
     else:
+        logger.warning("Missing arguments to properly make weather call")
         return meteo
 
     if res == 1:
-        logger.info("Could not retrieve weather for lat: " + lat + " and lon: " + lon)
         return meteo
     else:
-        meteoinfo = res["observations"]["location"]["observation"]
-        meteo["skydescription"] = meteoinfo["skyDescription"]
-        meteo["temp"] = meteoinfo["temperature"]
-        meteo["precipitations"] = meteoinfo["precipitation3H"]
-        meteo["wind"] = meteoinfo["windSpeed"]
-        meteo["visibility"] = meteoinfo["visibility"]
-        meteo["snow"] = meteoinfo["snowcover"]
+        meteoinfo = res["observations"]["location"][0]['observation'][0]
+        meteo["skydescription"] = meteoinfo.get("skyDescription")
+        meteo["temp"] = meteoinfo.get("temperature")
+        meteo["precipitations"] = meteoinfo.get("precipitation3H")
+        meteo["wind"] = meteoinfo.get("windSpeed")
+        meteo["visibility"] = meteoinfo.get("visibility")
+        meteo["snow"] = meteoinfo.get("snowCover")
         return meteo

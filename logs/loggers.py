@@ -27,6 +27,24 @@ def logTrainSearch(log):
     return decorator
 
 
+def logWeatherSearch(log):
+    def decorator(func):
+
+        def wrapper(*args, **kwargs):
+            if args:
+                lat, lon = args[0], args[1]
+            else:
+                lat, lon = kwargs['lat'], kwargs['lon']
+            log.info("Fetching weather info for lat " + lat + " and lon: " + lon)
+            res = func(*args, **kwargs)
+            if res == 1:
+                log.info("Could not retrieve weather for lat: " + lat + " and lon: " + lon)
+            log.info("Sending weather info to consumer...")
+            return res
+
+        return wrapper
+    return decorator
+
 def logConsumer(log):
     def decorator(func):
 
