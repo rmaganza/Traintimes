@@ -8,10 +8,11 @@ import os
 import sys
 from collections import OrderedDict
 
-from logs.loggers import logger, logTrainSearch
-from api.viaggiatreno import viaggiatreno
 from api.dateutils import format_timestamp
 from api.meteo.getweather import getweather
+from api.viaggiatreno import viaggiatreno
+from definitions import ROOT_DIR
+from logs.loggers import logger, logTrainSearch
 
 
 def getStationsLatLon(stationName, stationInfoDict):
@@ -25,7 +26,6 @@ def getStationsLatLon(stationName, stationInfoDict):
 
 @logTrainSearch(logger)
 def callApiAndGetResults(trainNumber, departures, res, api):
-
     # each result has two elements, the name of the station [0] and its ID [1].
     # we only care about the first result here
     # Therefore, departures[0][1] is the station ID element #1 of the first result [0].
@@ -64,7 +64,7 @@ def callApiAndGetResults(trainNumber, departures, res, api):
             res["lastCheckedAt"] = train_status["stazioneUltimoRilevamento"]
             res["lastCheckedTime"] = format_timestamp(train_status["oraUltimoRilevamento"])
 
-            with open(os.path.join('data', 'stations-dump', 'stations.json')) as jsonfile:
+            with open(os.path.join(ROOT_DIR, 'data', 'stations-dump', 'stations.json')) as jsonfile:
                 station_infos = json.load(jsonfile)
 
             station_infos = tuple(station_infos)
@@ -124,7 +124,6 @@ def callApiAndGetResults(trainNumber, departures, res, api):
 
 
 def getTrainInfo(trainNumber):
-
     res = OrderedDict([('trainNumber', trainNumber)])
 
     api = viaggiatreno.API()

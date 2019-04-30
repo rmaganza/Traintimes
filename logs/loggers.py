@@ -45,19 +45,6 @@ def logWeatherSearch(log):
         return wrapper
     return decorator
 
-def logConsumer(log):
-    def decorator(func):
-
-        def wrapper(*args, **kwargs):
-            log.info("Saving to DB...")
-            res = func(*args, **kwargs)
-            log.info("Saved to DB.")
-            return res
-
-        return wrapper
-
-    return decorator
-
 
 logfolder = os.path.dirname(os.path.abspath(__file__))
 
