@@ -3,7 +3,7 @@ from socket import timeout
 from urllib2 import urlopen, URLError
 
 from api.decodingutils import decode_json, decode_lines
-from api.retry import retry
+from exceptionhandling.retry import retry
 from exceptionhandling.catchAndLogExceptions import catchHTTPTimeout
 from logs.loggers import logger
 

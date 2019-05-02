@@ -70,55 +70,61 @@ def callApiAndGetResults(trainNumber, departures, res, api):
             station_infos = tuple(station_infos)
             stops = []
             delays = []
-            for f in train_status['fermate']:
-                station = f["stazione"]
-                stop = OrderedDict([('station', station),
-                                    ('scheduledAt', format_timestamp(f['programmata']))])
+            if train_status['fermate']:
+                for f in train_status['fermate']:
+                    station = f["stazione"]
+                    stop = OrderedDict([('station', station),
+                                        ('scheduledAt', format_timestamp(f['programmata']))])
 
-                lat, lon = getStationsLatLon(station, station_infos)
-                stop["lat"], stop["lon"] = lat, lon
+                    lat, lon = getStationsLatLon(station, station_infos)
+                    stop["lat"], stop["lon"] = lat, lon
 
-                if f['tipoFermata'] == 'P':
-                    stop["actual"] = format_timestamp(f['partenzaReale'])
-                    stop["delay"] = f['ritardoPartenza']
-                    stop["descr"] = 'Departure'
+                    if f['tipoFermata'] == 'P':
+                        stop["actual"] = format_timestamp(f['partenzaReale'])
+                        stop["delay"] = f['ritardoPartenza']
+                        stop["descr"] = 'Departure'
+                    else:
+                        stop["actual"] = format_timestamp(f['arrivoReale'])
+                        stop["delay"] = f['ritardoArrivo']
+                        stop["descr"] = 'Arrival'
+                        stop["meteo"] = getweather(lat, lon, trainNumber, res["departureDay"])
+
+                    delays.append(stop["delay"])
+
+                    if len(delays) > 1:
+                        stop["delayDiff"] = delays[-1] - delays[-2]
+
+                    if f['actualFermataType'] == 3:
+                        stop["status"] = "Cancelled"
+
+                    elif f['actualFermataType'] == 0:
+                        stop["status"] = "N/A"
+
+                    else:
+                        stop["status"] = "OK"
+
+                    # there we go
+                    stops.append(stop)
+
+                actualStops = [stop for stop in stops if stop["status"] != "N/A"]
+                res["stops"] = actualStops
+
+                if len(actualStops) == len(stops):
+                    res["isRunning"] = "Arrived"
+
+                    if stops[0]["scheduledAt"] != "N/A" and stops[-1]["scheduledAt"] != "N/A":
+                        res["arrivalDay"] = datetime.date.today().strftime("%Y-%m-%d")
+                        scheduledDeparture = datetime.datetime.strptime(stops[0]["scheduledAt"], "%H:%M:%S")
+                        scheduledArrival = datetime.datetime.strptime(stops[-1]["scheduledAt"], "%H:%M:%S")
+                        timediff = scheduledArrival - scheduledDeparture
+                        res["scheduledTripDuration"] = timediff.seconds / 60
+                        res["finalDelay"] = stops[-1]["delay"]
+
                 else:
-                    stop["actual"] = format_timestamp(f['arrivoReale'])
-                    stop["delay"] = f['ritardoArrivo']
-                    stop["descr"] = 'Arrival'
-                    stop["meteo"] = getweather(lat, lon, trainNumber, res["departureDay"])
-
-                delays.append(stop["delay"])
-
-                if len(delays) > 1:
-                    stop["delayDiff"] = delays[-1] - delays[-2]
-
-                if f['actualFermataType'] == 3:
-                    stop["status"] = "Cancelled"
-
-                elif f['actualFermataType'] == 0:
-                    stop["status"] = "N/A"
-
-                else:
-                    stop["status"] = "OK"
-
-                # there we go
-                stops.append(stop)
-
-            actualStops = [stop for stop in stops if stop["status"] != "N/A"]
-            res["stops"] = actualStops
-
-            if len(actualStops) == len(stops):
-                res["arrivalDay"] = datetime.date.today().strftime("%Y-%m-%d")
-                res["isRunning"] = "Arrived"
-                scheduledDeparture = datetime.datetime.strptime(stops[0]["scheduledAt"], "%H:%M:%S")
-                scheduledArrival = datetime.datetime.strptime(stops[-1]["scheduledAt"], "%H:%M:%S")
-                timediff = scheduledArrival - scheduledDeparture
-                res["scheduledTripDuration"] = timediff.seconds / 60
-                res["finalDelay"] = stops[-1]["delay"]
+                    res["isRunning"] = "running"
 
             else:
-                res["isRunning"] = "running"
+                logger.warning("Problem in collecting stops data for train " + str(trainNumber))
 
     return res
 

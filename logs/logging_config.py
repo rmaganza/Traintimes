@@ -43,6 +43,6 @@ LOGGING_CONFIG = {
 
     "root": {
         "level": "INFO",
-        "handlers": ["file_handler", "mail_handler"]
+        "handlers": ["file_handler", "mail_handler", "stdout_handler"]
     }
 }

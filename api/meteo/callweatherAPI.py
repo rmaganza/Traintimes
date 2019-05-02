@@ -5,7 +5,7 @@ from urllib2 import URLError, urlopen
 
 from api.decodingutils import decode_json
 from api.meteo.conf import METEO_CONF
-from api.retry import retry
+from exceptionhandling.retry import retry
 from exceptionhandling.catchAndLogExceptions import catchHTTPTimeout
 from logs.loggers import logger, logWeatherSearch
 

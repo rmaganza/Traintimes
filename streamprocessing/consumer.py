@@ -1,9 +1,12 @@
 from streamprocessing.conf.dbconf import collection
 from streamprocessing.conf.kafkaconf import Consumer
+from exceptionhandling.retry import retry
+from kafka.errors import CommitFailedError
 
 from logs.loggers import logger
 
 
+@retry(CommitFailedError, tries=10, delay=0, backoff=0, logger=logger)
 def consumer():
     for item in Consumer:
         logger.info("Saving to DB...")
@@ -17,3 +20,4 @@ def consumer():
 
 if __name__ == "__main__":
     consumer()
+re

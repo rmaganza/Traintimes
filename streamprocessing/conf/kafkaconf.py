@@ -16,5 +16,8 @@ Consumer = KafkaConsumer(TOPIC_NAME,
                          enable_auto_commit=True,
                          auto_commit_interval_ms=45000,
                          value_deserializer=lambda x: json.loads(x.decode('utf-8')),
-                         group_id=GROUP_NAME
+                         group_id=GROUP_NAME,
+                         session_timeout_ms=30000,
+                         heartbeat_interval_ms=10000,
+                         max_poll_interval_ms=10000
                          )
