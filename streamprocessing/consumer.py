@@ -20,4 +20,3 @@ def consumer():
 
 if __name__ == "__main__":
     consumer()
-re
