@@ -36,7 +36,11 @@ def callApiAndGetResults(trainNumber, departures, res, api):
     # It is required by viaggiatreno.it APIs.
     train_status = api.call('andamentoTreno', departure_ID, trainNumber)
 
-    if train_status == 1:
+    if not train_status:
+        logger.warning("Could not collect data for train " + str(trainNumber))
+        return res
+
+    elif train_status == 1:
         res["status"] = "HTTPIssue"
 
     else:
@@ -125,6 +129,9 @@ def callApiAndGetResults(trainNumber, departures, res, api):
 
             else:
                 logger.warning("Problem in collecting stops data for train " + str(trainNumber))
+
+            if res.get("finalDelay"):
+                res["status"] = "Arrived"
 
     return res
 
