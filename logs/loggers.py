@@ -37,7 +37,7 @@ def logWeatherSearch(log):
                 lat, lon = kwargs['lat'], kwargs['lon']
             log.info("Fetching weather info for lat " + lat + " and lon: " + lon)
             res = func(*args, **kwargs)
-            if res == 1:
+            if res == 1 or res is None:
                 log.info("Could not retrieve weather for lat: " + lat + " and lon: " + lon)
             log.info("Sending weather info to consumer...")
             return res

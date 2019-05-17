@@ -13,7 +13,7 @@ def getweather(lat, lon, numtrain, date):
         logger.warning("Missing arguments to properly make weather call")
         return meteo
 
-    if res == 1:
+    if res == 1 or res is None:
         return meteo
     else:
         meteoinfo = res["observations"]["location"][0]['observation'][0]
