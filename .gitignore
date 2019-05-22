@@ -3,3 +3,4 @@ venv
 *.pyc
 *.git
 *.log
+oauth2.json
