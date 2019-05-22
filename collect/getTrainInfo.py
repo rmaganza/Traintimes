@@ -8,9 +8,8 @@ import os
 import sys
 from collections import OrderedDict
 
-from api.dateutils import format_timestamp
-from api.meteo.getweather import getweather
-from api.viaggiatreno import viaggiatreno
+from api.API import API
+from collect.weather import getweather
 from definitions import ROOT_DIR
 from logs.loggers import logger, logTrainSearch
 
@@ -34,7 +33,7 @@ def callApiAndGetResults(trainNumber, departures, res, api):
 
     # This fetches the status for that train number from that departure_ID we just fetched.
     # It is required by viaggiatreno.it APIs.
-    train_status = api.call('andamentoTreno', departure_ID, trainNumber)
+    train_status = api.callviaggiatreno('andamentoTreno', departure_ID, trainNumber)
 
     if not train_status:
         logger.warning("Could not collect data for train " + str(trainNumber))
@@ -54,7 +53,7 @@ def callApiAndGetResults(trainNumber, departures, res, api):
             res["status"] = "notDeparted"
             res["isRunning"] = "no"
             res["lastCheckedAt"] = "N/A"
-            res["scheduledDeparture"] = format_timestamp(train_status['orarioPartenza'])
+            res["scheduledDeparture"] = api.format_timestamp(train_status['orarioPartenza'])
             res["origin"] = train_status["origine"]
 
         # finally, if the train is up and running
@@ -66,7 +65,7 @@ def callApiAndGetResults(trainNumber, departures, res, api):
                 res["status"] = "OK"
 
             res["lastCheckedAt"] = train_status["stazioneUltimoRilevamento"]
-            res["lastCheckedTime"] = format_timestamp(train_status["oraUltimoRilevamento"])
+            res["lastCheckedTime"] = api.format_timestamp(train_status["oraUltimoRilevamento"])
 
             with open(os.path.join(ROOT_DIR, 'data', 'stations-dump', 'stations.json')) as jsonfile:
                 station_infos = json.load(jsonfile)
@@ -78,20 +77,20 @@ def callApiAndGetResults(trainNumber, departures, res, api):
                 for f in train_status['fermate']:
                     station = f["stazione"]
                     stop = OrderedDict([('station', station),
-                                        ('scheduledAt', format_timestamp(f['programmata']))])
+                                        ('scheduledAt', api.format_timestamp(f['programmata']))])
 
                     lat, lon = getStationsLatLon(station, station_infos)
                     stop["lat"], stop["lon"] = lat, lon
 
                     if f['tipoFermata'] == 'P':
-                        stop["actual"] = format_timestamp(f['partenzaReale'])
+                        stop["actual"] = api.format_timestamp(f['partenzaReale'])
                         stop["delay"] = f['ritardoPartenza']
                         stop["descr"] = 'Departure'
                     else:
-                        stop["actual"] = format_timestamp(f['arrivoReale'])
+                        stop["actual"] = api.format_timestamp(f['arrivoReale'])
                         stop["delay"] = f['ritardoArrivo']
                         stop["descr"] = 'Arrival'
-                        stop["meteo"] = getweather(lat, lon, trainNumber, res["departureDay"])
+                        stop["weather"] = getweather(lat, lon, trainNumber, res["departureDay"])
 
                     delays.append(stop["delay"])
 
@@ -139,22 +138,23 @@ def callApiAndGetResults(trainNumber, departures, res, api):
 def getTrainInfo(trainNumber):
     res = OrderedDict([('trainNumber', trainNumber)])
 
-    api = viaggiatreno.API()
+    api = API()
 
     # "cercaNumeroTrenoTrenoAutocomplete is the viaggiatreno API call that returns the starting station
     # for the train number specified as its argument.
     # Unfortunately that could return more than one station.
-    departures = api.call('cercaNumeroTrenoTrenoAutocomplete', trainNumber)
+    departures = api.callviaggiatreno('cercaNumeroTrenoTrenoAutocomplete', trainNumber)
 
-    if len(departures) == 0:
-        logger.info("Train {0} not found on date.".format(trainNumber))
-        res["status"] = "NotRunningOnDate"
-        return json.dumps(res)
+    if departures != 1:
+        if len(departures) == 0:
+            logger.info("Train {0} not found on date.".format(trainNumber))
+            res["status"] = "NotRunningOnDate"
+            return json.dumps(res)
 
-    elif len(departures) > 1:
-        departures = departures[0]
+        elif len(departures) > 1:
+            departures = departures[0]
 
-    res = callApiAndGetResults(trainNumber, departures, res, api)
+        res = callApiAndGetResults(trainNumber, departures, res, api)
 
     return json.dumps(res).encode('utf-8')
 

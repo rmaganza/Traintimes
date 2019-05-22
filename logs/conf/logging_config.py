@@ -19,7 +19,7 @@ LOGGING_CONFIG = {
 
     "handlers": {
         "mail_handler": {
-            "class": "logs.GMailHandler.GMailHandler",
+            "class": "logs.conf.GMailHandler.GMailHandler",
             "level": "ERROR",
             "oauth_path": OAUTH_PATH,
             "fromaddr": MAIL_ADDRESS,

@@ -2,7 +2,7 @@ import csv
 import os
 
 from definitions import ROOT_DIR
-from getTrainInfo import getTrainInfo
+from collect.getTrainInfo import getTrainInfo
 
 with open(os.path.join(ROOT_DIR, 'data', 'numeritreni.csv')) as trenifile:
     numtreni = csv.reader(trenifile, delimiter=';')

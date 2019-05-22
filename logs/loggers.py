@@ -1,7 +1,7 @@
 import logging.config
 import os
 
-from logging_config import LOGGING_CONFIG
+from logs.conf.logging_config import LOGGING_CONFIG
 
 
 def logTrainSearch(log):
@@ -45,6 +45,33 @@ def logWeatherSearch(log):
         return wrapper
     return decorator
 
+
+def log_critical_and_send_mail(log, e):
+    log.critical("*CRITICAL ERROR* Program stopped working for exception " + repr(e), exc_info=True)
+
+
+def sendMailIfHalts(log):
+    """
+    A decorator that wraps the passed in function and logs
+    exceptions should one occur
+
+    @param log: The logging object
+    """
+
+    def decorator(func):
+
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except StandardError as e:
+                # log the exception
+                log_critical_and_send_mail(log, e)
+                # re-raise the exception
+                raise
+
+        return wrapper
+
+    return decorator
 
 logfolder = os.path.dirname(os.path.abspath(__file__))
 

@@ -46,7 +46,7 @@ sortkey = itemgetter(0)
 num_stations = 0
 for letter in string.ascii_uppercase:
     # Get all stations which name starts with 'letter'
-    stations = api.call('autocompletaStazione', letter)
+    stations = api.callviaggiatreno('autocompletaStazione', letter)
     num_stations += len(stations)
     print(letter, len(stations), num_stations)
     for s in sorted(stations, key=sortkey):
@@ -62,12 +62,12 @@ for letter in string.ascii_uppercase:
         }
 
         # Get region code, needed to obtain station details
-        reg_code = api.call('regione', station_id)
+        reg_code = api.callviaggiatreno('regione', station_id)
         if reg_code is not None:
             station['region_code'] = int(reg_code)
             station['region'] = region_codes.get(int(reg_code), 'N/A')
             # Get station details
-            details = api.call('dettaglioStazione', station_id, reg_code)
+            details = api.callviaggiatreno('dettaglioStazione', station_id, reg_code)
             if details is not None:
                 station['city'] = details['nomeCitta']
                 station['lat'] = details['lat']

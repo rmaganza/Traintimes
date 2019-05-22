@@ -5,10 +5,10 @@ import os
 import time
 
 from definitions import ROOT_DIR
-from exceptionhandling.catchAndLogExceptions import sendMailIfHalts, shutdown_handler
-from getTrainInfo import getTrainInfo
+from exceptionhandling.catchAndLogExceptions import shutdown_handler
+from collect.getTrainInfo import getTrainInfo
 from streamprocessing.conf.kafkaconf import Producer, TOPIC_NAME
-from logs.loggers import logger
+from logs.loggers import logger, sendMailIfHalts
 
 
 @sendMailIfHalts(logger)
