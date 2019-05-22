@@ -4,7 +4,7 @@ import re
 from socket import timeout
 from urllib2 import urlopen, URLError
 
-from collect.weather.conf import METEO_CONF
+from collect.weather.conf import WEATHER_CONF
 from exceptionhandling.catchAndLogExceptions import catchHTTPTimeout
 from exceptionhandling.retry import retry
 from logs.loggers import logger, logWeatherSearch
@@ -103,8 +103,8 @@ class API(object):
         url = "https://weather.cit.api.here.com/weather/1.0/report.json" \
               "?product=observation&latitude=%(lat)s&longitude=%(lon)s&oneobservation=true" \
               "&app_id=%(appid)s&app_code=%(appcode)s" % {
-                  "lat": lat, "lon": lon, "appid": METEO_CONF["APP_ID"],
-                  "appcode": METEO_CONF["APP_CODE"]
+                  "lat": lat, "lon": lon, "appid": WEATHER_CONF["APP_ID"],
+                  "appcode": WEATHER_CONF["APP_CODE"]
               }
 
         req = urlopen(url.encode("utf8"))
