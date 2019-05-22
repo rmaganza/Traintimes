@@ -9,7 +9,7 @@ import sys
 from collections import OrderedDict
 
 from api.API import API
-from collect.weather import getweather
+from collect.weather.getweather import getweather
 from definitions import ROOT_DIR
 from logs.loggers import logger, logTrainSearch
 
