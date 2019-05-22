@@ -1,6 +1,6 @@
 from backports.functools_lru_cache import lru_cache
 
-from api.meteo.callweatherAPI import callweatherAPI
+from api.API import API
 from logs.loggers import logger
 
 
@@ -8,7 +8,8 @@ from logs.loggers import logger
 def getweather(lat, lon, numtrain, date):
     meteo = {}
     if numtrain and date:
-        res = callweatherAPI(lat, lon)
+        api = API()
+        res = api.callweatherAPI(lat, lon)
     else:
         logger.warning("Missing arguments to properly make weather call")
         return meteo
