@@ -37,7 +37,7 @@ class API(object):
     @staticmethod
     def check_timestamp(ts):
         return (ts is not None) and (ts > 0) and (ts < 2147483648000)
-    
+
     def _decode_json(self, s):
         if s == '':
             return None
