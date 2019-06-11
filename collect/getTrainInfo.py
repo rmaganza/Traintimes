@@ -35,12 +35,9 @@ def callApiAndGetResults(trainNumber, departures, res, api):
     # It is required by viaggiatreno.it APIs.
     train_status = api.callviaggiatreno('andamentoTreno', departure_ID, trainNumber)
 
-    if not train_status:
+    if not train_status or train_status == 1:
         logger.warning("Could not collect data for train " + str(trainNumber))
-        return res
-
-    elif train_status == 1:
-        res["status"] = "HTTPIssue"
+        return {}
 
     else:
         res["departureDay"] = datetime.date.today().strftime("%Y-%m-%d")
@@ -116,7 +113,6 @@ def callApiAndGetResults(trainNumber, departures, res, api):
                     res["isRunning"] = "Arrived"
 
                     if stops[0]["scheduledAt"] != "N/A" and stops[-1]["scheduledAt"] != "N/A":
-                        res["arrivalDay"] = datetime.date.today().strftime("%Y-%m-%d")
                         scheduledDeparture = datetime.datetime.strptime(stops[0]["scheduledAt"], "%H:%M:%S")
                         scheduledArrival = datetime.datetime.strptime(stops[-1]["scheduledAt"], "%H:%M:%S")
                         timediff = scheduledArrival - scheduledDeparture
